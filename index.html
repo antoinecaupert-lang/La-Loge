@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Loge — Karaoké Privé · Montpellier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --burgundy: #1a0a0f;
+    --deep-red: #3d0c1a;
+    --crimson: #7a1530;
+    --gold: #c9a84c;
+    --gold-light: #e8c96d;
+    --gold-pale: #f5e6b8;
+    --cream: #faf3e6;
+    --text-dark: #1a0a0f;
+    --text-muted: #8a6a50;
+    --velvet: #2d0d1a;
+    --curtain: #4a0e20;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--burgundy);
+    color: var(--cream);
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    padding: 2rem;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 100%, var(--crimson) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 50% 0%, #2a0810 0%, transparent 60%),
+      var(--burgundy);
+  }
+
+  /* CURTAINS */
+  .curtain-left, .curtain-right {
+    position: absolute;
+    top: 0;
+    width: 22%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .curtain-left {
+    left: 0;
+    background: linear-gradient(to right, var(--curtain) 0%, #6b1530 60%, transparent 100%);
+    clip-path: polygon(0 0, 100% 0, 80% 100%, 0 100%);
+  }
+  .curtain-right {
+    right: 0;
+    background: linear-gradient(to left, var(--curtain) 0%, #6b1530 60%, transparent 100%);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 20% 100%);
+  }
+  .curtain-left::after, .curtain-right::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      rgba(0,0,0,0.08) 4px,
+      transparent 8px
+    );
+  }
+
+  /* SPOTLIGHT */
+  .spotlight {
+    position: absolute;
+    top: -20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 400px;
+    height: 800px;
+    background: conic-gradient(from 170deg at 50% 0%, transparent 0deg, rgba(201,168,76,0.06) 20deg, transparent 40deg);
+    pointer-events: none;
+    animation: spotflicker 8s ease-in-out infinite;
+  }
+  @keyframes spotflicker {
+    0%, 100% { opacity: 1; }
+    45% { opacity: 0.85; }
+    47% { opacity: 1; }
+    60% { opacity: 0.9; }
+    62% { opacity: 1; }
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    animation: heroReveal 1.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes heroReveal {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .eyebrow {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.35em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    animation: heroReveal 1.4s 0.2s both;
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(4rem, 12vw, 9rem);
+    font-weight: 400;
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    color: var(--cream);
+    animation: heroReveal 1.4s 0.35s both;
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: var(--gold-light);
+    display: block;
+  }
+
+  .hero-sub {
+    font-size: clamp(1rem, 2vw, 1.4rem);
+    font-weight: 300;
+    color: var(--gold-pale);
+    margin-top: 1.5rem;
+    letter-spacing: 0.1em;
+    animation: heroReveal 1.4s 0.5s both;
+  }
+
+  .gold-divider {
+    width: 120px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+    margin: 2rem auto;
+    animation: heroReveal 1.4s 0.6s both;
+  }
+
+  .hero-cta {
+    animation: heroReveal 1.4s 0.75s both;
+    margin-top: 2rem;
+  }
+
+  .btn-primary {
+    display: inline-block;
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--text-dark);
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
+    padding: 1rem 2.5rem;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  }
+  .btn-primary:hover {
+    background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold-pale) 50%, var(--gold-light) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(201,168,76,0.4);
+  }
+
+  .btn-secondary {
+    display: inline-block;
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    background: transparent;
+    padding: 0.9rem 2rem;
+    border: 1px solid var(--gold);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    margin-left: 1rem;
+  }
+  .btn-secondary:hover {
+    background: rgba(201,168,76,0.1);
+    transform: translateY(-2px);
+  }
+
+  /* SCROLL HINT */
+  .scroll-hint {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 2;
+    opacity: 0.5;
+    animation: bounce 2s ease-in-out infinite;
+  }
+  .scroll-hint span {
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+  }
+  .scroll-arrow { width: 1px; height: 40px; background: linear-gradient(to bottom, var(--gold), transparent); }
+  @keyframes bounce { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(6px); } }
+
+  /* SECTIONS */
+  section { padding: 5rem 1.5rem; max-width: 1100px; margin: 0 auto; }
+
+  /* ABOUT */
+  .about-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5rem;
+    align-items: center;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 6rem 1.5rem;
+  }
+  @media (max-width: 700px) {
+    .about-section { grid-template-columns: 1fr; gap: 2.5rem; }
+    .btn-secondary { margin-left: 0; margin-top: 0.75rem; display: block; text-align: center; }
+  }
+
+  .about-text h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 400;
+    line-height: 1.15;
+    margin-bottom: 1.5rem;
+    color: var(--cream);
+  }
+  .about-text h2 em { color: var(--gold-light); font-style: italic; }
+  .about-text p {
+    font-size: 1.15rem;
+    line-height: 1.9;
+    color: var(--gold-pale);
+    font-weight: 300;
+    margin-bottom: 1rem;
+  }
+
+  .about-visual {
+    position: relative;
+    aspect-ratio: 3/4;
+    background: var(--velvet);
+    border: 1px solid rgba(201,168,76,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .about-visual::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 60% at 50% 80%, var(--crimson) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 30% at 80% 20%, rgba(201,168,76,0.1) 0%, transparent 60%);
+  }
+  .about-visual-inner {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 2rem;
+  }
+  .mic-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1rem;
+    opacity: 0.8;
+  }
+  .about-visual-inner p {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-style: italic;
+    color: var(--gold-light);
+    line-height: 1.6;
+  }
+  .about-visual-inner .author {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+    margin-top: 1rem;
+    display: block;
+    font-style: normal;
+  }
+
+  .corner-ornament {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border-color: var(--gold);
+    border-style: solid;
+    opacity: 0.5;
+  }
+  .corner-ornament.tl { top: 12px; left: 12px; border-width: 1px 0 0 1px; }
+  .corner-ornament.tr { top: 12px; right: 12px; border-width: 1px 1px 0 0; }
+  .corner-ornament.bl { bottom: 12px; left: 12px; border-width: 0 0 1px 1px; }
+  .corner-ornament.br { bottom: 12px; right: 12px; border-width: 0 1px 1px 0; }
+
+  /* BOXES */
+  .boxes-section {
+    padding: 4rem 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 400;
+    color: var(--cream);
+    margin-bottom: 0.5rem;
+  }
+  .section-title em { color: var(--gold-light); font-style: italic; }
+  .section-sub {
+    font-size: 1.1rem;
+    color: var(--gold-pale);
+    font-weight: 300;
+    margin-bottom: 3.5rem;
+  }
+
+  .boxes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.5rem;
+    text-align: left;
+  }
+
+  .box-card {
+    background: var(--velvet);
+    border: 1px solid rgba(201,168,76,0.15);
+    padding: 2rem;
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    cursor: pointer;
+    overflow: hidden;
+  }
+  .box-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(201,168,76,0.05) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .box-card:hover { border-color: rgba(201,168,76,0.5); transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+  .box-card:hover::before { opacity: 1; }
+
+  .box-number {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+    margin-bottom: 1rem;
+    display: block;
+  }
+  .box-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 400;
+    color: var(--cream);
+    margin-bottom: 0.5rem;
+  }
+  .box-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    padding: 0.35rem 0.8rem;
+    margin-top: 1rem;
+  }
+  .box-status.available { color: #7ecba1; border: 1px solid rgba(126,203,161,0.3); background: rgba(126,203,161,0.05); }
+  .box-status.unavailable { color: #c87e7e; border: 1px solid rgba(200,126,126,0.3); background: rgba(200,126,126,0.05); }
+  .box-status-dot { width: 5px; height: 5px; border-radius: 50%; }
+  .box-status.available .box-status-dot { background: #7ecba1; box-shadow: 0 0 6px #7ecba1; }
+  .box-status.unavailable .box-status-dot { background: #c87e7e; }
+
+  .box-book-btn {
+    display: block;
+    width: 100%;
+    margin-top: 1.5rem;
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 0.75rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+  }
+  .box-book-btn:hover:not(:disabled) {
+    background: var(--gold);
+    color: var(--text-dark);
+  }
+  .box-book-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    border-color: rgba(201,168,76,0.3);
+    color: rgba(201,168,76,0.3);
+  }
+
+  .loading-state {
+    text-align: center;
+    padding: 4rem;
+    color: var(--gold);
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.3em;
+  }
+  .loading-state::after {
+    content: '...';
+    animation: loadingDots 1.5s steps(4, end) infinite;
+  }
+  @keyframes loadingDots {
+    0% { content: ''; }
+    25% { content: '.'; }
+    50% { content: '..'; }
+    75% { content: '...'; }
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10,2,6,0.92);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+  .modal {
+    background: var(--velvet);
+    border: 1px solid rgba(201,168,76,0.25);
+    max-width: 540px;
+    width: 100%;
+    position: relative;
+    padding: 3rem;
+    transform: translateY(30px) scale(0.97);
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-overlay.open .modal { transform: translateY(0) scale(1); }
+
+  .modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    background: none;
+    border: none;
+    color: var(--gold);
+    font-size: 1.5rem;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    font-family: 'Cormorant Garamond', serif;
+  }
+  .modal-close:hover { opacity: 1; }
+
+  .modal-eyebrow {
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.35em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  .modal h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 400;
+    color: var(--cream);
+    margin-bottom: 0.3rem;
+  }
+  .modal h2 em { color: var(--gold-light); font-style: italic; }
+
+  .modal-divider {
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(to right, var(--gold), transparent);
+    margin: 1.25rem 0;
+  }
+
+  .form-group { margin-bottom: 1.5rem; }
+  .form-group label {
+    display: block;
+    font-family: 'Cinzel', serif;
+    font-size: 0.62rem;
+    letter-spacing: 0.25em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  .form-group input, .form-group select {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.2);
+    color: var(--cream);
+    padding: 0.85rem 1rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+    outline: none;
+    transition: border-color 0.3s;
+    appearance: none;
+  }
+  .form-group input:focus, .form-group select:focus {
+    border-color: var(--gold);
+  }
+  .form-group select option { background: var(--velvet); }
+
+  .duration-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  .duration-option {
+    border: 1px solid rgba(201,168,76,0.2);
+    padding: 1rem;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.3s;
+    background: rgba(255,255,255,0.02);
+    position: relative;
+  }
+  .duration-option input[type="radio"] { display: none; }
+  .duration-option:has(input:checked),
+  .duration-option.selected {
+    border-color: var(--gold);
+    background: rgba(201,168,76,0.08);
+  }
+  .duration-option .dur-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    color: var(--cream);
+    display: block;
+  }
+  .duration-option .dur-sub {
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    display: block;
+    margin-top: 0.25rem;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+  }
+  .form-actions .btn-primary { flex: 1; min-width: 140px; text-align: center; font-size: 0.7rem; cursor: pointer; }
+  .form-actions .btn-cancel {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  .form-actions .btn-cancel:hover { color: var(--cream); }
+
+  /* SUCCESS */
+  .success-state {
+    text-align: center;
+    padding: 1rem 0;
+  }
+  .success-icon {
+    width: 64px;
+    height: 64px;
+    border: 1px solid var(--gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: var(--gold);
+    font-size: 1.5rem;
+  }
+  .success-state h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: var(--cream);
+    margin-bottom: 0.5rem;
+  }
+  .success-state p {
+    color: var(--gold-pale);
+    font-size: 1.1rem;
+    line-height: 1.7;
+  }
+  .success-details {
+    margin: 1.5rem 0;
+    padding: 1.25rem;
+    border: 1px solid rgba(201,168,76,0.2);
+    background: rgba(201,168,76,0.04);
+  }
+  .success-details p {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    margin-bottom: 0.4rem;
+  }
+  .success-details p:last-child { margin-bottom: 0; }
+  .success-details span { color: var(--cream); }
+
+  .error-msg {
+    color: #e07070;
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    margin-top: 1rem;
+    padding: 0.75rem;
+    border: 1px solid rgba(224,112,112,0.3);
+    background: rgba(224,112,112,0.05);
+    display: none;
+  }
+  .error-msg.visible { display: block; }
+
+  /* API CONFIG BANNER */
+  .api-banner {
+    background: rgba(201,168,76,0.08);
+    border: 1px solid rgba(201,168,76,0.25);
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+  .api-banner p {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    color: var(--gold);
+    flex: 1;
+  }
+  .api-banner input {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.3);
+    color: var(--cream);
+    padding: 0.5rem 0.75rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.9rem;
+    outline: none;
+    width: 240px;
+  }
+  .api-banner button {
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    background: var(--gold);
+    color: var(--text-dark);
+    border: none;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .api-banner button:hover { background: var(--gold-light); }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 4rem 1.5rem;
+    border-top: 1px solid rgba(201,168,76,0.1);
+    position: relative;
+  }
+  footer::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 80px; height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+  }
+  footer .footer-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 400;
+    color: var(--gold);
+    margin-bottom: 0.5rem;
+  }
+  footer .footer-logo em { font-style: italic; color: var(--cream); }
+  footer p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+  }
+  footer a { color: var(--gold); text-decoration: none; }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 1.25rem 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(to bottom, rgba(26,10,15,0.95), transparent);
+  }
+  .nav-logo {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    text-decoration: none;
+  }
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+  }
+  .nav-links a {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    color: var(--gold-pale);
+    text-decoration: none;
+    transition: color 0.2s;
+    text-transform: uppercase;
+  }
+  .nav-links a:hover { color: var(--gold); }
+
+  @media (max-width: 600px) {
+    .nav-links { display: none; }
+    .modal { padding: 2rem 1.5rem; }
+    .about-section { padding: 4rem 1.5rem; }
+  }
+
+  /* ORNAMENT */
+  .ornament {
+    text-align: center;
+    padding: 2rem 0;
+    color: var(--gold);
+    opacity: 0.4;
+    font-size: 1.5rem;
+    letter-spacing: 0.5em;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="nav-logo">La Loge</a>
+  <ul class="nav-links">
+    <li><a href="#boxes">Nos Loges</a></li>
+    <li><a href="#about">L'Adresse</a></li>
+    <li><a href="#boxes" class="btn-primary" style="clip-path:none; padding: 0.5rem 1.25rem;">Réserver</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="curtain-left"></div>
+  <div class="curtain-right"></div>
+  <div class="spotlight"></div>
+
+  <div class="hero-content">
+    <p class="eyebrow">Karaoké Privé · Montpellier</p>
+    <h1>La<em>Loge</em></h1>
+    <div class="gold-divider"></div>
+    <p class="hero-sub">Votre scène. Votre moment. Votre soirée.</p>
+    <div class="hero-cta">
+      <a href="#boxes" class="btn-primary">Réserver une loge</a>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <span>Découvrir</span>
+    <div class="scroll-arrow"></div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<div class="about-section" id="about">
+  <div class="about-text">
+    <h2>Une <em>expérience</em><br>hors du commun</h2>
+    <p>Nichée au cœur de Montpellier, La Loge vous invite à vivre le karaoké comme jamais auparavant — dans l'intimité d'un espace privatif, avec une sono professionnelle et des milliers de titres à portée de main.</p>
+    <p>Chaque loge est un théâtre en miniature, pensé pour vos soirées en duo, entre amis ou en équipe.</p>
+  </div>
+  <div class="about-visual">
+    <div class="corner-ornament tl"></div>
+    <div class="corner-ornament tr"></div>
+    <div class="corner-ornament bl"></div>
+    <div class="corner-ornament br"></div>
+    <div class="about-visual-inner">
+      <svg class="mic-icon" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="40" cy="28" rx="14" ry="20" stroke="#c9a84c" stroke-width="1.5"/>
+        <path d="M22 36c0 9.94 8.06 18 18 18s18-8.06 18-18" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="40" y1="54" x2="40" y2="68" stroke="#c9a84c" stroke-width="1.5"/>
+        <line x1="28" y1="68" x2="52" y2="68" stroke="#c9a84c" stroke-width="1.5"/>
+        <line x1="26" y1="26" x2="54" y2="26" stroke="#c9a84c" stroke-width="0.8" opacity="0.4"/>
+        <line x1="26" y1="30" x2="54" y2="30" stroke="#c9a84c" stroke-width="0.8" opacity="0.4"/>
+        <line x1="27" y1="34" x2="53" y2="34" stroke="#c9a84c" stroke-width="0.8" opacity="0.4"/>
+      </svg>
+      <p>« La scène est à vous,<br>osez chanter juste. »</p>
+      <span class="author">— La Loge, Montpellier</span>
+    </div>
+  </div>
+</div>
+
+<div class="ornament">✦ &nbsp; ✦ &nbsp; ✦</div>
+
+<!-- BOXES -->
+<div class="boxes-section" id="boxes">
+  <p class="eyebrow" style="font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:0.35em;color:var(--gold);margin-bottom:0.5rem;">Disponibilités en temps réel</p>
+  <h2 class="section-title">Nos <em>Loges</em></h2>
+  <p class="section-sub">Choisissez votre scène, réservez votre créneau.</p>
+
+  <!-- API KEY BANNER -->
+  <div class="api-banner" id="api-banner">
+    <p>🔑 Clé API KaraFun Business requise pour accéder aux disponibilités</p>
+    <input type="password" id="api-key-input" placeholder="Votre token Bearer..." />
+    <button onclick="saveApiKey()">Confirmer</button>
+  </div>
+
+  <div id="boxes-container">
+    <div class="loading-state">Chargement des loges</div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">La <em>Loge</em></div>
+  <p style="margin-top:0.5rem; margin-bottom:0.25rem;">Montpellier, France</p>
+  <p>Karaoké privé • Sessions 1h & 2h</p>
+  <p style="margin-top:1.5rem; font-size:0.75rem; opacity:0.5;">© 2025 La Loge · Propulsé par KaraFun Business</p>
+</footer>
+
+<!-- BOOKING MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<script>
+const API_BASE = '';
+let apiToken = localStorage.getItem('karafun_token') || 'ebf828cee0c247d741862dc0618f3c3a2febe32b4e4822d6fdd7340edbe1';
+let devices = [];
+let selectedDevice = null;
+let selectedDuration = 60; // minutes
+
+// ---- TOKEN ----
+function saveApiKey() {
+  const val = document.getElementById('api-key-input').value.trim();
+  if (!val) return;
+  apiToken = val;
+  localStorage.setItem('karafun_token', val);
+  document.getElementById('api-banner').style.display = 'none';
+  loadDevices();
+}
+
+function getHeaders() {
+  return {
+    'Authorization': `Bearer ${apiToken}`,
+    'Content-Type': 'application/json'
+  };
+}
+
+// ---- DEVICES ----
+async function loadDevices() {
+  const container = document.getElementById('boxes-container');
+  container.innerHTML = '<div class="loading-state">Chargement des loges</div>';
+  try {
+    const res = await fetch('/api/devices', { headers: getHeaders() });
+    if (!res.ok) throw new Error(`Erreur API: ${res.status}`);
+    devices = await res.json();
+    renderDevices();
+  } catch(e) {
+    container.innerHTML = `<div class="loading-state" style="color:#e07070;">Impossible de charger les loges.<br><small style="opacity:0.6;font-size:0.7em;">${e.message}</small></div>`;
+  }
+}
+
+function renderDevices() {
+  const container = document.getElementById('boxes-container');
+  if (!devices.length) {
+    container.innerHTML = '<div class="loading-state">Aucune loge disponible.</div>';
+    return;
+  }
+
+  const grid = document.createElement('div');
+  grid.className = 'boxes-grid';
+
+  devices.forEach(device => {
+    const card = document.createElement('div');
+    card.className = 'box-card';
+    card.innerHTML = `
+      <span class="box-number">Loge N° ${device.number || device.id}</span>
+      <div class="box-name">${device.name || 'Loge ' + device.id}</div>
+      <div class="box-status available">
+        <span class="box-status-dot"></span>
+        Disponible
+      </div>
+      <button class="box-book-btn" onclick="openBooking(${device.id})">
+        Réserver cette loge
+      </button>
+    `;
+    grid.appendChild(card);
+  });
+
+  container.innerHTML = '';
+  container.appendChild(grid);
+}
+
+// ---- MODAL ----
+function openBooking(deviceId) {
+  selectedDevice = devices.find(d => d.id === deviceId);
+  selectedDuration = 60;
+  renderBookingForm();
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+document.getElementById('modal-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+});
+
+function renderBookingForm() {
+  const content = document.getElementById('modal-content');
+  const now = new Date();
+  // Round up to next half hour
+  now.setMinutes(now.getMinutes() >= 30 ? 60 : 30, 0, 0);
+  const localISO = toLocalDatetimeInput(now);
+
+  content.innerHTML = `
+    <p class="modal-eyebrow">Réservation</p>
+    <h2>${selectedDevice.name || 'Loge ' + selectedDevice.id} <em>#${selectedDevice.number || selectedDevice.id}</em></h2>
+    <div class="modal-divider"></div>
+
+    <div class="form-group">
+      <label>Prénom du client</label>
+      <input type="text" id="firstname" placeholder="Votre prénom..." />
+    </div>
+
+    <div class="form-group">
+      <label>Début de la session</label>
+      <input type="datetime-local" id="start-time" value="${localISO}" />
+    </div>
+
+    <div class="form-group">
+      <label>Durée de la session</label>
+      <div class="duration-selector">
+        <label class="duration-option selected" id="dur-60" onclick="selectDuration(60)">
+          <input type="radio" name="duration" value="60" checked>
+          <span class="dur-label">1 h</span>
+          <span class="dur-sub">Session courte</span>
+        </label>
+        <label class="duration-option" id="dur-120" onclick="selectDuration(120)">
+          <input type="radio" name="duration" value="120">
+          <span class="dur-label">2 h</span>
+          <span class="dur-sub">Session longue</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Commentaire (optionnel)</label>
+      <input type="text" id="comment" placeholder="Anniversaire, événement..." />
+    </div>
+
+    <div class="error-msg" id="form-error"></div>
+
+    <div class="form-actions">
+      <button class="btn-primary" onclick="submitBooking()" id="submit-btn">Confirmer la réservation</button>
+      <button class="btn-cancel" onclick="closeModal()">Annuler</button>
+    </div>
+  `;
+}
+
+function selectDuration(mins) {
+  selectedDuration = mins;
+  document.getElementById('dur-60').classList.toggle('selected', mins === 60);
+  document.getElementById('dur-120').classList.toggle('selected', mins === 120);
+}
+
+function toLocalDatetimeInput(date) {
+  const pad = n => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function toISO8601WithTZ(date) {
+  const pad = n => String(n).padStart(2, '0');
+  const tzOff = -date.getTimezoneOffset();
+  const sign = tzOff >= 0 ? '+' : '-';
+  const absOff = Math.abs(tzOff);
+  const hh = pad(Math.floor(absOff / 60));
+  const mm = pad(absOff % 60);
+  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:00${sign}${hh}:${mm}`;
+}
+
+async function submitBooking() {
+  const firstname = document.getElementById('firstname').value.trim();
+  const startVal = document.getElementById('start-time').value;
+  const comment = document.getElementById('comment').value.trim();
+  const errorEl = document.getElementById('form-error');
+
+  errorEl.classList.remove('visible');
+
+  if (!firstname) { showError('Veuillez saisir un prénom.'); return; }
+  if (!startVal) { showError('Veuillez choisir une date et heure de début.'); return; }
+
+  const startDate = new Date(startVal);
+  if (isNaN(startDate)) { showError('Date invalide.'); return; }
+
+  const endDate = new Date(startDate.getTime() + selectedDuration * 60 * 1000);
+
+  const payload = {
+    device_id: selectedDevice.id,
+    start_at_timestamp: toISO8601WithTZ(startDate),
+    end_at_timestamp: toISO8601WithTZ(endDate),
+    customer_firstname: firstname,
+    comment: comment || undefined,
+    locale: 'fr'
+  };
+
+  const btn = document.getElementById('submit-btn');
+  btn.textContent = 'Réservation en cours…';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/session', {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.message || `Erreur ${res.status}`);
+    }
+
+    const session = await res.json();
+    showSuccess(session, startDate, endDate, firstname);
+  } catch(e) {
+    showError(`La réservation a échoué : ${e.message}`);
+    btn.textContent = 'Confirmer la réservation';
+    btn.disabled = false;
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('form-error');
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+
+function showSuccess(session, startDate, endDate, firstname) {
+  const fmt = date => date.toLocaleString('fr-FR', {
+    weekday: 'long', day: 'numeric', month: 'long',
+    hour: '2-digit', minute: '2-digit'
+  });
+
+  document.getElementById('modal-content').innerHTML = `
+    <div class="success-state">
+      <div class="success-icon">✓</div>
+      <h3>C'est réservé !</h3>
+      <p>Votre loge vous attend,<br>${firstname}.</p>
+      <div class="success-details">
+        <p>Loge · <span>${selectedDevice.name || 'Loge ' + selectedDevice.id}</span></p>
+        <p>Début · <span>${fmt(startDate)}</span></p>
+        <p>Fin · <span>${fmt(endDate)}</span></p>
+        <p>Durée · <span>${selectedDuration === 60 ? '1 heure' : '2 heures'}</span></p>
+        ${session.id ? `<p>Réf. · <span>#${session.id}</span></p>` : ''}
+      </div>
+      <button class="btn-primary" style="margin-top:1rem;" onclick="closeModal()">Fermer</button>
+    </div>
+  `;
+}
+
+// ---- INIT ----
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('api-banner').style.display = 'none';
+  loadDevices();
+});
+
+// Smooth scroll
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
+  });
+});
+</script>
+</body>
+</html>
