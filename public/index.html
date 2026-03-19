@@ -382,9 +382,139 @@
     background: linear-gradient(135deg, rgba(201,168,76,0.05) 0%, transparent 60%);
     opacity: 0;
     transition: opacity 0.4s;
+    pointer-events: none;
   }
   .box-card:hover { border-color: rgba(201,168,76,0.5); transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
   .box-card:hover::before { opacity: 1; }
+  
+  /* BOUTONS AUJOURD'HUI / PROCHAINS JOURS */
+  .book-choice {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+    margin-top: 1.25rem;
+  }
+  .book-choice-btn {
+    background: transparent;
+    border: 1px solid rgba(201,168,76,0.3);
+    color: var(--gold);
+    font-family: 'Cinzel', serif;
+    font-size: 0.58rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.75rem 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+    line-height: 1.6;
+  }
+  .book-choice-btn:hover {
+    background: rgba(201,168,76,0.1);
+    border-color: var(--gold);
+    color: var(--gold-light);
+  }
+  .book-choice-btn .btn-icon {
+    display: block;
+    font-size: 1.2rem;
+    margin-bottom: 0.3rem;
+  }
+
+  /* MINI CRÉNEAUX AUJOURD'HUI */
+  .today-slots {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+  .today-slot-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid rgba(201,168,76,0.15);
+    background: rgba(255,255,255,0.02);
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+    font-family: 'Cinzel', serif;
+  }
+  .today-slot-btn:hover { border-color: rgba(201,168,76,0.5); background: rgba(201,168,76,0.06); }
+  .today-slot-btn .slot-time { font-size: 0.65rem; letter-spacing: 0.1em; color: var(--cream); }
+  .today-slot-btn .slot-dur { font-size: 0.58rem; letter-spacing: 0.1em; color: var(--gold); }
+
+  /* CALENDRIER */
+  .mini-calendar {
+    margin-top: 1rem;
+    animation: fadeIn 0.3s ease;
+  }
+  .cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+  .cal-header span {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+  .cal-nav {
+    background: none;
+    border: 1px solid rgba(201,168,76,0.3);
+    color: var(--gold);
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .cal-nav:hover { background: rgba(201,168,76,0.1); }
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+  .cal-day-name {
+    font-family: 'Cinzel', serif;
+    font-size: 0.5rem;
+    letter-spacing: 0.1em;
+    color: var(--gold);
+    text-align: center;
+    padding: 0.2rem 0;
+    opacity: 0.6;
+  }
+  .cal-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    color: var(--cream);
+  }
+  .cal-day:hover:not(.cal-empty):not(.cal-past):not(.cal-closed) { border-color: rgba(201,168,76,0.5); background: rgba(201,168,76,0.08); }
+  .cal-day.cal-empty { cursor: default; }
+  .cal-day.cal-past { opacity: 0.2; cursor: not-allowed; }
+  .cal-day.cal-closed { opacity: 0.2; cursor: not-allowed; color: var(--text-muted); }
+  .cal-day.cal-today { border-color: rgba(201,168,76,0.4); color: var(--gold-light); }
+  .cal-day.cal-selected { background: var(--gold); color: var(--text-dark); border-color: var(--gold); }
+  .cal-day-slots {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    animation: fadeIn 0.2s ease;
+  }
 
   .box-number {
     font-family: 'Cinzel', serif;
@@ -1007,106 +1137,69 @@ async function loadDevices() {
 }
 
 // ---- CRÉNEAUX ----
-// Horaires : mardi-dimanche, 09h-01h (lendemain)
-const OPEN_DAYS = [2,3,4,5,6,0]; // 0=dim,1=lun,2=mar...
+const OPEN_DAYS = [2,3,4,5,6,0]; // mar-dim
 const OPEN_HOUR = 9;
-const CLOSE_HOUR = 25; // 01h du matin = 25h
+const CLOSE_HOUR = 25; // 01h = 25h
 
-function getNextSlots(bookedSessions, deviceId, count) {
+function isSlotFree(bookedSessions, deviceId, start, durationMins) {
+  const end = new Date(start.getTime() + durationMins * 60000);
+  return !bookedSessions.some(s => {
+    if (s.device_id !== deviceId) return false;
+    const sStart = new Date(s.start_at_timestamp || s.start_at);
+    const sEnd = new Date(s.end_at_timestamp || s.end_at);
+    return start < sEnd && end > sStart;
+  });
+}
+
+function isOpenTime(date) {
+  const day = date.getDay();
+  const h = date.getHours() < OPEN_HOUR ? date.getHours() + 24 : date.getHours();
+  return OPEN_DAYS.includes(day) && h >= OPEN_HOUR && h < CLOSE_HOUR;
+}
+
+async function fetchSessionsForRange(start, end) {
+  try {
+    const s = encodeURIComponent(start.toISOString().slice(0,19) + '+00:00');
+    const e = encodeURIComponent(end.toISOString().slice(0,19) + '+00:00');
+    const res = await fetch(`/api/sessions?start_at_timestamp=${s}&end_at_timestamp=${e}`);
+    return res.ok ? await res.json() : [];
+  } catch(e) { return []; }
+}
+
+function getSlotsForDay(bookedSessions, deviceId, date) {
+  // Créneaux toutes les 30 min pour un jour donné
   const slots = [];
+  const day = new Date(date);
+  day.setHours(OPEN_HOUR, 0, 0, 0);
+  const endOfDay = new Date(day);
+  endOfDay.setHours(23, 30, 0, 0);
   const now = new Date();
-  // On commence au prochain créneau rond (heure pile ou demi)
-  let cursor = new Date(now);
-  cursor.setSeconds(0, 0);
-  if (cursor.getMinutes() < 30) cursor.setMinutes(30);
-  else { cursor.setMinutes(0); cursor.setHours(cursor.getHours() + 1); }
 
-  const booked = (bookedSessions || []).filter(s => s.device_id === deviceId);
-
-  let attempts = 0;
-  while (slots.length < count && attempts < 200) {
-    attempts++;
-    const dayOfWeek = cursor.getDay();
-    const hour = cursor.getHours() + (cursor.getMinutes() / 60);
-
-    // Vérifier jour et heure d'ouverture (minuit-01h = heure 24-25)
-    const isOpenDay = OPEN_DAYS.includes(dayOfWeek);
-    const isOpenHour = hour >= OPEN_HOUR && hour < CLOSE_HOUR;
-
-    // Pour les heures après minuit, ajuster
-    const adjustedHour = cursor.getHours() < OPEN_HOUR ? cursor.getHours() + 24 : cursor.getHours();
-    const isOpen = isOpenDay && (adjustedHour >= OPEN_HOUR && adjustedHour < CLOSE_HOUR);
-
-    if (isOpen) {
-      // Vérifier si ce créneau est libre (1h et 2h)
-      for (const dur of [60, 120]) {
-        const slotEnd = new Date(cursor.getTime() + dur * 60000);
-        const slotEndHour = slotEnd.getHours() < OPEN_HOUR ? slotEnd.getHours() + 24 : slotEnd.getHours();
-        if (slotEndHour > CLOSE_HOUR) continue;
-
-        const conflict = booked.some(s => {
-          const sStart = new Date(s.start_at_timestamp || s.start_at);
-          const sEnd = new Date(s.end_at_timestamp || s.end_at);
-          return cursor < sEnd && slotEnd > sStart;
-        });
-
-        if (!conflict) {
-          // Éviter les doublons
-          const key = cursor.toISOString() + dur;
-          if (!slots.find(sl => sl.key === key)) {
-            slots.push({ start: new Date(cursor), dur, key });
-            if (slots.length >= count) break;
+  let cursor = new Date(day);
+  while (cursor <= endOfDay) {
+    if (cursor > now && isOpenTime(cursor)) {
+      // Trouver la durée max disponible
+      for (const dur of [30, 45, 60, 90, 120, 150, 180]) {
+        if (isSlotFree(bookedSessions, deviceId, cursor, dur)) {
+          const endSlot = new Date(cursor.getTime() + dur * 60000);
+          const endH = endSlot.getHours() < OPEN_HOUR ? endSlot.getHours() + 24 : endSlot.getHours();
+          if (endH <= CLOSE_HOUR) {
+            // Ajouter uniquement le premier créneau de chaque heure de début (le plus court)
+            if (!slots.find(s => s.start.getTime() === cursor.getTime())) {
+              slots.push({ start: new Date(cursor), dur });
+            }
+            break;
           }
         }
       }
     }
-
-    // Avancer de 30 minutes
     cursor = new Date(cursor.getTime() + 30 * 60000);
   }
-  return slots.slice(0, count);
+  return slots;
 }
 
-function formatSlot(slot) {
-  const opts = { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' };
-  return slot.start.toLocaleString('fr-FR', opts);
-}
-
-async function loadSlotsForCard(device, cardEl) {
-  const slotsContainer = cardEl.querySelector('.slots-list');
-  slotsContainer.innerHTML = '<div class="slots-loading">Chargement des créneaux</div>';
-
-  try {
-    const now = new Date();
-    const end = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-    const startStr = encodeURIComponent(now.toISOString().slice(0,19) + '+00:00');
-    const endStr = encodeURIComponent(end.toISOString().slice(0,19) + '+00:00');
-    const res = await fetch(`/api/sessions?start_at_timestamp=${startStr}&end_at_timestamp=${endStr}`);
-    const sessions = res.ok ? await res.json() : [];
-    const slots = getNextSlots(sessions, device.id, 5);
-
-    if (!slots.length) {
-      slotsContainer.innerHTML = '<div class="slots-loading">Aucun créneau disponible</div>';
-      return;
-    }
-
-    slotsContainer.innerHTML = '';
-    slots.forEach(sl => {
-      const el = document.createElement('div');
-      el.className = 'slot-item';
-      el.style.cursor = 'pointer';
-      el.innerHTML = `<span class="slot-time">${formatSlot(sl)}</span><span class="slot-dur">${sl.dur === 60 ? '1h' : '2h'}</span>`;
-      el.addEventListener('mouseover', () => el.style.borderColor = 'rgba(201,168,76,0.5)');
-      el.addEventListener('mouseout', () => el.style.borderColor = 'rgba(201,168,76,0.15)');
-      el.addEventListener('click', () => {
-        console.log('slot clicked', device.id, sl.start.toISOString(), sl.dur);
-        openBookingWithSlot(device.id, sl.start.toISOString(), sl.dur);
-      });
-      slotsContainer.appendChild(el);
-    });
-  } catch(e) {
-    slotsContainer.innerHTML = '<div class="slots-loading">Impossible de charger</div>';
-  }
+function formatTime(date) {
+  return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 }
 
 function renderDevices() {
@@ -1122,38 +1215,184 @@ function renderDevices() {
   devices.forEach(device => {
     const card = document.createElement('div');
     card.className = 'box-card';
-    card.innerHTML = `
+
+    const header = document.createElement('div');
+    header.innerHTML = `
       <span class="box-number">Loge N° ${device.number || device.id}</span>
       <div class="box-name">${device.name || 'Loge ' + device.id}</div>
-      <div class="box-status available">
-        <span class="box-status-dot"></span>
-        Disponible
-      </div>
-      <p class="slots-title">Prochains créneaux</p>
-      <div class="slots-list"></div>
+      <div class="box-status available"><span class="box-status-dot"></span>Disponible</div>
     `;
-    // Bouton créé en JS pour éviter les problèmes de onclick inline
-    const btn = document.createElement('button');
-    btn.className = 'box-book-btn';
-    btn.style.marginTop = '1.25rem';
-    btn.textContent = 'Réserver cette loge';
-    btn.addEventListener('click', () => openBooking(device.id));
-    card.appendChild(btn);
+    card.appendChild(header);
+
+    // Deux boutons
+    const choiceDiv = document.createElement('div');
+    choiceDiv.className = 'book-choice';
+
+    const btnToday = document.createElement('button');
+    btnToday.className = 'book-choice-btn';
+    btnToday.innerHTML = `<span class="btn-icon">🎤</span>Aujourd'hui`;
+
+    const btnFuture = document.createElement('button');
+    btnFuture.className = 'book-choice-btn';
+    btnFuture.innerHTML = `<span class="btn-icon">📅</span>Prochains jours`;
+
+    choiceDiv.appendChild(btnToday);
+    choiceDiv.appendChild(btnFuture);
+    card.appendChild(choiceDiv);
+
+    // Zone dynamique
+    const dynamicZone = document.createElement('div');
+    dynamicZone.className = 'dynamic-zone';
+    card.appendChild(dynamicZone);
+
+    // Clic Aujourd'hui
+    btnToday.addEventListener('click', async () => {
+      dynamicZone.innerHTML = '<div class="slots-loading">Chargement...</div>';
+      const today = new Date();
+      const tomorrow = new Date(today.getTime() + 24*60*60*1000);
+      const sessions = await fetchSessionsForRange(today, tomorrow);
+      const slots = getSlotsForDay(sessions, device.id, today);
+
+      if (!slots.length) {
+        dynamicZone.innerHTML = '<div class="slots-loading">Aucun créneau disponible aujourd'hui</div>';
+        return;
+      }
+
+      const slotsDiv = document.createElement('div');
+      slotsDiv.className = 'today-slots';
+      slots.forEach(sl => {
+        const btn = document.createElement('button');
+        btn.className = 'today-slot-btn';
+        btn.innerHTML = `<span class="slot-time">${formatTime(sl.start)}</span><span class="slot-dur">dès ${sl.dur} min · ${PRICES[sl.dur]}€</span>`;
+        btn.addEventListener('click', () => openBookingWithSlot(device.id, sl.start.toISOString(), sl.dur));
+        slotsDiv.appendChild(btn);
+      });
+      dynamicZone.innerHTML = '';
+      dynamicZone.appendChild(slotsDiv);
+    });
+
+    // Clic Prochains jours
+    btnFuture.addEventListener('click', () => {
+      dynamicZone.innerHTML = '';
+      renderCalendar(dynamicZone, device);
+    });
+
     grid.appendChild(card);
-    loadSlotsForCard(device, card);
   });
 
   container.innerHTML = '';
   container.appendChild(grid);
+}
 
-  // Event delegation sur le container parent
-  container.addEventListener('click', e => {
-    const btn = e.target.closest('.box-book-btn');
-    if (btn) {
-      const deviceId = parseInt(btn.getAttribute('data-device-id'));
-      openBooking(deviceId);
-    }
+// ---- CALENDRIER ----
+function renderCalendar(container, device, monthOffset = 0) {
+  const now = new Date();
+  const displayDate = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
+  const monthName = displayDate.toLocaleString('fr-FR', { month: 'long', year: 'numeric' });
+  const maxDate = new Date(now.getFullYear(), now.getMonth() + 3, 0);
+
+  const cal = document.createElement('div');
+  cal.className = 'mini-calendar';
+
+  // Header navigation
+  const header = document.createElement('div');
+  header.className = 'cal-header';
+
+  const prevBtn = document.createElement('button');
+  prevBtn.className = 'cal-nav';
+  prevBtn.textContent = '‹';
+  prevBtn.disabled = monthOffset <= 0;
+  prevBtn.style.opacity = monthOffset <= 0 ? '0.3' : '1';
+  prevBtn.addEventListener('click', () => { container.innerHTML = ''; renderCalendar(container, device, monthOffset - 1); });
+
+  const title = document.createElement('span');
+  title.textContent = monthName;
+
+  const nextBtn = document.createElement('button');
+  nextBtn.className = 'cal-nav';
+  nextBtn.textContent = '›';
+  nextBtn.disabled = monthOffset >= 2;
+  nextBtn.style.opacity = monthOffset >= 2 ? '0.3' : '1';
+  nextBtn.addEventListener('click', () => { container.innerHTML = ''; renderCalendar(container, device, monthOffset + 1); });
+
+  header.appendChild(prevBtn);
+  header.appendChild(title);
+  header.appendChild(nextBtn);
+  cal.appendChild(header);
+
+  // Grille
+  const grid = document.createElement('div');
+  grid.className = 'cal-grid';
+
+  // Jours de la semaine
+  ['Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di'].forEach(d => {
+    const dn = document.createElement('div');
+    dn.className = 'cal-day-name';
+    dn.textContent = d;
+    grid.appendChild(dn);
   });
+
+  // Premier jour du mois
+  const firstDay = new Date(displayDate.getFullYear(), displayDate.getMonth(), 1);
+  const startPad = (firstDay.getDay() + 6) % 7; // Lundi = 0
+  const daysInMonth = new Date(displayDate.getFullYear(), displayDate.getMonth() + 1, 0).getDate();
+
+  for (let i = 0; i < startPad; i++) {
+    const empty = document.createElement('div');
+    empty.className = 'cal-day cal-empty';
+    grid.appendChild(empty);
+  }
+
+  const slotsZone = document.createElement('div');
+  slotsZone.className = 'cal-day-slots';
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(displayDate.getFullYear(), displayDate.getMonth(), d);
+    const dayEl = document.createElement('div');
+    dayEl.className = 'cal-day';
+    dayEl.textContent = d;
+
+    const isPast = date < new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const isClosed = !OPEN_DAYS.includes(date.getDay());
+    const isFuture = date > maxDate;
+    const isToday = date.toDateString() === now.toDateString();
+
+    if (isPast || isFuture) dayEl.classList.add('cal-past');
+    else if (isClosed) dayEl.classList.add('cal-closed');
+    else if (isToday) dayEl.classList.add('cal-today');
+
+    if (!isPast && !isClosed && !isFuture) {
+      dayEl.addEventListener('click', async () => {
+        document.querySelectorAll('.cal-day.cal-selected').forEach(el => el.classList.remove('cal-selected'));
+        dayEl.classList.add('cal-selected');
+
+        slotsZone.innerHTML = '<div class="slots-loading">Chargement...</div>';
+        const dayEnd = new Date(date.getTime() + 24*60*60*1000);
+        const sessions = await fetchSessionsForRange(date, dayEnd);
+        const slots = getSlotsForDay(sessions, device.id, date);
+
+        if (!slots.length) {
+          slotsZone.innerHTML = '<div class="slots-loading">Aucun créneau disponible ce jour</div>';
+          return;
+        }
+
+        slotsZone.innerHTML = '';
+        slots.forEach(sl => {
+          const btn = document.createElement('button');
+          btn.className = 'today-slot-btn';
+          btn.innerHTML = `<span class="slot-time">${formatTime(sl.start)}</span><span class="slot-dur">dès ${sl.dur} min · ${PRICES[sl.dur]}€</span>`;
+          btn.addEventListener('click', () => openBookingWithSlot(device.id, sl.start.toISOString(), sl.dur));
+          slotsZone.appendChild(btn);
+        });
+      });
+    }
+
+    grid.appendChild(dayEl);
+  }
+
+  cal.appendChild(grid);
+  cal.appendChild(slotsZone);
+  container.appendChild(cal);
 }
 
 // ---- MODAL ----
