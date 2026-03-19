@@ -782,6 +782,48 @@
     .about-section { padding: 4rem 1.5rem; }
   }
 
+
+  /* CRÉNEAUX */
+  .slots-list {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .slot-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid rgba(201,168,76,0.15);
+    background: rgba(255,255,255,0.02);
+    font-family: 'Cinzel', serif;
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    color: var(--gold-pale);
+  }
+  .slot-item .slot-time { color: var(--cream); }
+  .slot-item .slot-dur { color: var(--gold); opacity: 0.7; }
+  .slots-loading {
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    opacity: 0.5;
+    margin-top: 0.75rem;
+    padding: 0.5rem 0;
+  }
+  .slots-title {
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.25em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.8;
+  }
+
   /* ORNAMENT */
   .ornament {
     text-align: center;
@@ -927,6 +969,101 @@ async function loadDevices() {
   }
 }
 
+// ---- CRÉNEAUX ----
+// Horaires : mardi-dimanche, 09h-01h (lendemain)
+const OPEN_DAYS = [2,3,4,5,6,0]; // 0=dim,1=lun,2=mar...
+const OPEN_HOUR = 9;
+const CLOSE_HOUR = 25; // 01h du matin = 25h
+
+function getNextSlots(bookedSessions, deviceId, count) {
+  const slots = [];
+  const now = new Date();
+  // On commence au prochain créneau rond (heure pile ou demi)
+  let cursor = new Date(now);
+  cursor.setSeconds(0, 0);
+  if (cursor.getMinutes() < 30) cursor.setMinutes(30);
+  else { cursor.setMinutes(0); cursor.setHours(cursor.getHours() + 1); }
+
+  const booked = (bookedSessions || []).filter(s => s.device_id === deviceId);
+
+  let attempts = 0;
+  while (slots.length < count && attempts < 200) {
+    attempts++;
+    const dayOfWeek = cursor.getDay();
+    const hour = cursor.getHours() + (cursor.getMinutes() / 60);
+
+    // Vérifier jour et heure d'ouverture (minuit-01h = heure 24-25)
+    const isOpenDay = OPEN_DAYS.includes(dayOfWeek);
+    const isOpenHour = hour >= OPEN_HOUR && hour < CLOSE_HOUR;
+
+    // Pour les heures après minuit, ajuster
+    const adjustedHour = cursor.getHours() < OPEN_HOUR ? cursor.getHours() + 24 : cursor.getHours();
+    const isOpen = isOpenDay && (adjustedHour >= OPEN_HOUR && adjustedHour < CLOSE_HOUR);
+
+    if (isOpen) {
+      // Vérifier si ce créneau est libre (1h et 2h)
+      for (const dur of [60, 120]) {
+        const slotEnd = new Date(cursor.getTime() + dur * 60000);
+        const slotEndHour = slotEnd.getHours() < OPEN_HOUR ? slotEnd.getHours() + 24 : slotEnd.getHours();
+        if (slotEndHour > CLOSE_HOUR) continue;
+
+        const conflict = booked.some(s => {
+          const sStart = new Date(s.start_at_timestamp || s.start_at);
+          const sEnd = new Date(s.end_at_timestamp || s.end_at);
+          return cursor < sEnd && slotEnd > sStart;
+        });
+
+        if (!conflict) {
+          // Éviter les doublons
+          const key = cursor.toISOString() + dur;
+          if (!slots.find(sl => sl.key === key)) {
+            slots.push({ start: new Date(cursor), dur, key });
+            if (slots.length >= count) break;
+          }
+        }
+      }
+    }
+
+    // Avancer de 30 minutes
+    cursor = new Date(cursor.getTime() + 30 * 60000);
+  }
+  return slots.slice(0, count);
+}
+
+function formatSlot(slot) {
+  const opts = { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' };
+  return slot.start.toLocaleString('fr-FR', opts);
+}
+
+async function loadSlotsForCard(device, cardEl) {
+  const slotsContainer = cardEl.querySelector('.slots-list');
+  slotsContainer.innerHTML = '<div class="slots-loading">Chargement des créneaux</div>';
+
+  try {
+    const now = new Date();
+    const end = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const startStr = encodeURIComponent(now.toISOString().slice(0,19) + '+00:00');
+    const endStr = encodeURIComponent(end.toISOString().slice(0,19) + '+00:00');
+    const res = await fetch(`/api/sessions?start_at_timestamp=${startStr}&end_at_timestamp=${endStr}`);
+    const sessions = res.ok ? await res.json() : [];
+    const slots = getNextSlots(sessions, device.id, 5);
+
+    if (!slots.length) {
+      slotsContainer.innerHTML = '<div class="slots-loading">Aucun créneau disponible</div>';
+      return;
+    }
+
+    slotsContainer.innerHTML = slots.map(sl => `
+      <div class="slot-item" onclick="openBookingWithSlot(${device.id}, '${sl.start.toISOString()}', ${sl.dur})" style="cursor:pointer;" onmouseover="this.style.borderColor='rgba(201,168,76,0.5)'" onmouseout="this.style.borderColor='rgba(201,168,76,0.15)'">
+        <span class="slot-time">${formatSlot(sl)}</span>
+        <span class="slot-dur">${sl.dur === 60 ? '1h' : '2h'}</span>
+      </div>
+    `).join('');
+  } catch(e) {
+    slotsContainer.innerHTML = '<div class="slots-loading">Impossible de charger</div>';
+  }
+}
+
 function renderDevices() {
   const container = document.getElementById('boxes-container');
   if (!devices.length) {
@@ -947,11 +1084,14 @@ function renderDevices() {
         <span class="box-status-dot"></span>
         Disponible
       </div>
-      <button class="box-book-btn" onclick="openBooking(${device.id})">
-        Réserver cette loge
+      <p class="slots-title">Prochains créneaux</p>
+      <div class="slots-list"></div>
+      <button class="box-book-btn" style="margin-top:1.25rem;" onclick="openBooking(${device.id})">
+        Choisir un autre créneau
       </button>
     `;
     grid.appendChild(card);
+    loadSlotsForCard(device, card);
   });
 
   container.innerHTML = '';
@@ -959,6 +1099,14 @@ function renderDevices() {
 }
 
 // ---- MODAL ----
+function openBookingWithSlot(deviceId, isoStart, duration) {
+  selectedDevice = devices.find(d => d.id === deviceId || d.id === parseInt(deviceId));
+  if (!selectedDevice && devices.length > 0) selectedDevice = devices[0];
+  selectedDuration = duration;
+  renderBookingForm(isoStart);
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
 function openBooking(deviceId) {
   selectedDevice = devices.find(d => d.id === deviceId || d.id === parseInt(deviceId));
   if (!selectedDevice && devices.length > 0) selectedDevice = devices[0];
@@ -975,12 +1123,16 @@ document.getElementById('modal-overlay').addEventListener('click', e => {
   if (e.target === document.getElementById('modal-overlay')) closeModal();
 });
 
-function renderBookingForm() {
+function renderBookingForm(presetISO) {
   const content = document.getElementById('modal-content');
-  const now = new Date();
-  // Round up to next half hour
-  now.setMinutes(now.getMinutes() >= 30 ? 60 : 30, 0, 0);
-  const localISO = toLocalDatetimeInput(now);
+  let startDate;
+  if (presetISO) {
+    startDate = new Date(presetISO);
+  } else {
+    startDate = new Date();
+    startDate.setMinutes(startDate.getMinutes() >= 30 ? 60 : 30, 0, 0);
+  }
+  const localISO = toLocalDatetimeInput(startDate);
 
   content.innerHTML = `
     <p class="modal-eyebrow">Réservation</p>
