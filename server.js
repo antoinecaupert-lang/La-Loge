@@ -45,6 +45,17 @@ app.get('/api/devices', async (req, res) => {
   }
 });
 
+// Sessions existantes (pour calculer les créneaux libres)
+app.get('/api/sessions', async (req, res) => {
+  try {
+    const qs = Object.keys(req.query).length ? '?' + new URLSearchParams(req.query).toString() : '';
+    const result = await karafunRequest('GET', '/session/' + qs, null);
+    res.status(result.status).json(JSON.parse(result.body));
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Créer une session
 app.post('/api/session', async (req, res) => {
   try {
