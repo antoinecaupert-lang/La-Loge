@@ -1127,15 +1127,18 @@ function renderDevices() {
 
 // ---- MODAL ----
 function openBookingWithSlot(deviceId, isoStart, duration) {
-  selectedDevice = devices.find(d => d.id === deviceId || d.id === parseInt(deviceId));
+  const id = parseInt(deviceId);
+  selectedDevice = devices.find(d => parseInt(d.id) === id);
   if (!selectedDevice && devices.length > 0) selectedDevice = devices[0];
+  console.log('openBookingWithSlot', id, selectedDevice);
   selectedDuration = duration;
   renderBookingForm(isoStart);
   document.getElementById('modal-overlay').classList.add('open');
 }
 
 function openBooking(deviceId) {
-  selectedDevice = devices.find(d => d.id === deviceId || d.id === parseInt(deviceId));
+  const id = parseInt(deviceId);
+  selectedDevice = devices.find(d => parseInt(d.id) === id);
   if (!selectedDevice && devices.length > 0) selectedDevice = devices[0];
   selectedDuration = 60;
   renderBookingForm();
