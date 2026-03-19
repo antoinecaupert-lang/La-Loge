@@ -960,7 +960,8 @@ function renderDevices() {
 
 // ---- MODAL ----
 function openBooking(deviceId) {
-  selectedDevice = devices.find(d => d.id === deviceId);
+  selectedDevice = devices.find(d => d.id === deviceId || d.id === parseInt(deviceId));
+  if (!selectedDevice && devices.length > 0) selectedDevice = devices[0];
   selectedDuration = 60;
   renderBookingForm();
   document.getElementById('modal-overlay').classList.add('open');
