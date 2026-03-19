@@ -1,0 +1,12 @@
+{
+  "name": "laloge",
+  "version": "1.0.0",
+  "description": "La Loge - Karaoké Privé Montpellier",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
