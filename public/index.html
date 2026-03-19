@@ -1080,12 +1080,20 @@ async function loadSlotsForCard(device, cardEl) {
       return;
     }
 
-    slotsContainer.innerHTML = slots.map(sl => `
-      <div class="slot-item" onclick="openBookingWithSlot(${device.id}, '${sl.start.toISOString()}', ${sl.dur})" style="cursor:pointer;" onmouseover="this.style.borderColor='rgba(201,168,76,0.5)'" onmouseout="this.style.borderColor='rgba(201,168,76,0.15)'">
-        <span class="slot-time">${formatSlot(sl)}</span>
-        <span class="slot-dur">${sl.dur === 60 ? '1h' : '2h'}</span>
-      </div>
-    `).join('');
+    slotsContainer.innerHTML = '';
+    slots.forEach(sl => {
+      const el = document.createElement('div');
+      el.className = 'slot-item';
+      el.style.cursor = 'pointer';
+      el.innerHTML = `<span class="slot-time">${formatSlot(sl)}</span><span class="slot-dur">${sl.dur === 60 ? '1h' : '2h'}</span>`;
+      el.addEventListener('mouseover', () => el.style.borderColor = 'rgba(201,168,76,0.5)');
+      el.addEventListener('mouseout', () => el.style.borderColor = 'rgba(201,168,76,0.15)');
+      el.addEventListener('click', () => {
+        console.log('slot clicked', device.id, sl.start.toISOString(), sl.dur);
+        openBookingWithSlot(device.id, sl.start.toISOString(), sl.dur);
+      });
+      slotsContainer.appendChild(el);
+    });
   } catch(e) {
     slotsContainer.innerHTML = '<div class="slots-loading">Impossible de charger</div>';
   }
