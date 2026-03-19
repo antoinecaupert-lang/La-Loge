@@ -783,6 +783,33 @@
   }
 
 
+
+  /* PRIX & RÉCAP */
+  .price-recap {
+    background: rgba(201,168,76,0.06);
+    border: 1px solid rgba(201,168,76,0.25);
+    padding: 1.25rem;
+    margin-top: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .price-recap .price-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+  }
+  .price-recap .price-amount {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: var(--gold-light);
+  }
+  .price-recap .price-amount span {
+    font-size: 1rem;
+    color: var(--gold);
+  }
+
   /* CRÉNEAUX */
   .slots-list {
     margin-top: 1rem;
@@ -1123,6 +1150,19 @@ document.getElementById('modal-overlay').addEventListener('click', e => {
   if (e.target === document.getElementById('modal-overlay')) closeModal();
 });
 
+const PRICES = { 60: 80, 120: 140 };
+
+function updatePriceRecap() {
+  const el = document.getElementById('price-recap');
+  if (el) el.innerHTML = `
+    <div>
+      <div class="price-label">Total à régler sur place</div>
+      <div class="price-label" style="margin-top:0.25rem;color:var(--gold-pale);">${selectedDuration === 60 ? '1 heure' : '2 heures'} · jusqu'à 8 personnes</div>
+    </div>
+    <div class="price-amount">${PRICES[selectedDuration]}<span> €</span></div>
+  `;
+}
+
 function renderBookingForm(presetISO) {
   const content = document.getElementById('modal-content');
   let startDate;
@@ -1133,6 +1173,7 @@ function renderBookingForm(presetISO) {
     startDate.setMinutes(startDate.getMinutes() >= 30 ? 60 : 30, 0, 0);
   }
   const localISO = toLocalDatetimeInput(startDate);
+  const isDur120 = selectedDuration === 120;
 
   content.innerHTML = `
     <p class="modal-eyebrow">Réservation</p>
@@ -1140,8 +1181,20 @@ function renderBookingForm(presetISO) {
     <div class="modal-divider"></div>
 
     <div class="form-group">
-      <label>Prénom du client</label>
+      <label>Prénom</label>
       <input type="text" id="firstname" placeholder="Votre prénom..." />
+    </div>
+
+    <div class="form-group">
+      <label>Adresse e-mail</label>
+      <input type="email" id="email" placeholder="votre@email.com" />
+    </div>
+
+    <div class="form-group">
+      <label>Nombre de personnes</label>
+      <select id="persons">
+        ${[1,2,3,4,5,6,7,8].map(n => `<option value="${n}">${n} personne${n>1?'s':''}</option>`).join('')}
+      </select>
     </div>
 
     <div class="form-group">
@@ -1152,15 +1205,15 @@ function renderBookingForm(presetISO) {
     <div class="form-group">
       <label>Durée de la session</label>
       <div class="duration-selector">
-        <label class="duration-option selected" id="dur-60" onclick="selectDuration(60)">
-          <input type="radio" name="duration" value="60" checked>
+        <label class="duration-option ${!isDur120 ? 'selected' : ''}" id="dur-60" onclick="selectDuration(60)">
+          <input type="radio" name="duration" value="60" ${!isDur120 ? 'checked' : ''}>
           <span class="dur-label">1 h</span>
-          <span class="dur-sub">Session courte</span>
+          <span class="dur-sub">80 €</span>
         </label>
-        <label class="duration-option" id="dur-120" onclick="selectDuration(120)">
-          <input type="radio" name="duration" value="120">
+        <label class="duration-option ${isDur120 ? 'selected' : ''}" id="dur-120" onclick="selectDuration(120)">
+          <input type="radio" name="duration" value="120" ${isDur120 ? 'checked' : ''}>
           <span class="dur-label">2 h</span>
-          <span class="dur-sub">Session longue</span>
+          <span class="dur-sub">140 €</span>
         </label>
       </div>
     </div>
@@ -1170,6 +1223,8 @@ function renderBookingForm(presetISO) {
       <input type="text" id="comment" placeholder="Anniversaire, événement..." />
     </div>
 
+    <div class="price-recap" id="price-recap"></div>
+
     <div class="error-msg" id="form-error"></div>
 
     <div class="form-actions">
@@ -1177,12 +1232,14 @@ function renderBookingForm(presetISO) {
       <button class="btn-cancel" onclick="closeModal()">Annuler</button>
     </div>
   `;
+  updatePriceRecap();
 }
 
 function selectDuration(mins) {
   selectedDuration = mins;
   document.getElementById('dur-60').classList.toggle('selected', mins === 60);
   document.getElementById('dur-120').classList.toggle('selected', mins === 120);
+  updatePriceRecap();
 }
 
 function toLocalDatetimeInput(date) {
@@ -1202,26 +1259,31 @@ function toISO8601WithTZ(date) {
 
 async function submitBooking() {
   const firstname = document.getElementById('firstname').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const persons = document.getElementById('persons').value;
   const startVal = document.getElementById('start-time').value;
   const comment = document.getElementById('comment').value.trim();
   const errorEl = document.getElementById('form-error');
 
   errorEl.classList.remove('visible');
 
-  if (!firstname) { showError('Veuillez saisir un prénom.'); return; }
+  if (!firstname) { showError('Veuillez saisir votre prénom.'); return; }
+  if (!email || !email.includes('@')) { showError('Veuillez saisir une adresse e-mail valide.'); return; }
   if (!startVal) { showError('Veuillez choisir une date et heure de début.'); return; }
 
   const startDate = new Date(startVal);
   if (isNaN(startDate)) { showError('Date invalide.'); return; }
 
   const endDate = new Date(startDate.getTime() + selectedDuration * 60 * 1000);
+  const price = PRICES[selectedDuration];
+  const commentFull = [comment, `Email: ${email}`, `Personnes: ${persons}`, `Montant: ${price}€`].filter(Boolean).join(' | ');
 
   const payload = {
     device_id: selectedDevice.id,
     start_at_timestamp: toISO8601WithTZ(startDate),
     end_at_timestamp: toISO8601WithTZ(endDate),
     customer_firstname: firstname,
-    comment: comment || undefined,
+    comment: commentFull,
     locale: 'fr'
   };
 
@@ -1242,7 +1304,7 @@ async function submitBooking() {
     }
 
     const session = await res.json();
-    showSuccess(session, startDate, endDate, firstname);
+    showSuccess(session, startDate, endDate, firstname, email, persons);
   } catch(e) {
     showError(`La réservation a échoué : ${e.message}`);
     btn.textContent = 'Confirmer la réservation';
@@ -1256,11 +1318,12 @@ function showError(msg) {
   el.classList.add('visible');
 }
 
-function showSuccess(session, startDate, endDate, firstname) {
+function showSuccess(session, startDate, endDate, firstname, email, persons) {
   const fmt = date => date.toLocaleString('fr-FR', {
     weekday: 'long', day: 'numeric', month: 'long',
     hour: '2-digit', minute: '2-digit'
   });
+  const price = PRICES[selectedDuration];
 
   document.getElementById('modal-content').innerHTML = `
     <div class="success-state">
@@ -1272,6 +1335,9 @@ function showSuccess(session, startDate, endDate, firstname) {
         <p>Début · <span>${fmt(startDate)}</span></p>
         <p>Fin · <span>${fmt(endDate)}</span></p>
         <p>Durée · <span>${selectedDuration === 60 ? '1 heure' : '2 heures'}</span></p>
+        <p>Personnes · <span>${persons}</span></p>
+        <p>Montant à régler sur place · <span>${price} €</span></p>
+        <p>Confirmation envoyée à · <span>${email}</span></p>
         ${session.id ? `<p>Réf. · <span>#${session.id}</span></p>` : ''}
       </div>
       <button class="btn-primary" style="margin-top:1rem;" onclick="closeModal()">Fermer</button>
