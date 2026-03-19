@@ -561,39 +561,38 @@
   }
   .form-group select option { background: var(--velvet); }
 
-  .duration-selector {
+  .duration-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
   }
-  .duration-option {
+  @media (max-width: 480px) { .duration-grid { grid-template-columns: repeat(3, 1fr); } }
+  .dur-btn {
     border: 1px solid rgba(201,168,76,0.2);
-    padding: 1rem;
+    padding: 0.65rem 0.4rem;
     cursor: pointer;
     text-align: center;
-    transition: all 0.3s;
+    transition: all 0.25s;
     background: rgba(255,255,255,0.02);
-    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
   }
-  .duration-option input[type="radio"] { display: none; }
-  .duration-option:has(input:checked),
-  .duration-option.selected {
-    border-color: var(--gold);
-    background: rgba(201,168,76,0.08);
-  }
-  .duration-option .dur-label {
+  .dur-btn:hover { border-color: rgba(201,168,76,0.5); background: rgba(201,168,76,0.05); }
+  .dur-btn.selected { border-color: var(--gold); background: rgba(201,168,76,0.1); }
+  .dur-btn-label {
     font-family: 'Playfair Display', serif;
-    font-size: 1.6rem;
+    font-size: 1rem;
     color: var(--cream);
     display: block;
   }
-  .duration-option .dur-sub {
+  .dur-btn-price {
     font-family: 'Cinzel', serif;
-    font-size: 0.6rem;
-    letter-spacing: 0.2em;
+    font-size: 0.58rem;
+    letter-spacing: 0.15em;
     color: var(--gold);
     display: block;
-    margin-top: 0.25rem;
   }
 
   .form-actions {
@@ -1129,7 +1128,7 @@ function renderDevices() {
       <p class="slots-title">Prochains créneaux</p>
       <div class="slots-list"></div>
       <button class="box-book-btn" style="margin-top:1.25rem;" onclick="openBooking(${device.id})">
-        Choisir un autre créneau
+        Réserver cette loge
       </button>
     `;
     grid.appendChild(card);
@@ -1168,16 +1167,34 @@ document.getElementById('modal-overlay').addEventListener('click', e => {
   if (e.target === document.getElementById('modal-overlay')) closeModal();
 });
 
-const PRICES = { 60: 80, 120: 140 };
+const PRICES = {
+  30: 50,
+  45: 72,
+  60: 95,
+  90: 135,
+  120: 170,
+  150: 195,
+  180: 220
+};
+const DURATIONS = [
+  { mins: 30,  label: '30 min' },
+  { mins: 45,  label: '45 min' },
+  { mins: 60,  label: '1h' },
+  { mins: 90,  label: '1h30' },
+  { mins: 120, label: '2h' },
+  { mins: 150, label: '2h30' },
+  { mins: 180, label: '3h' },
+];
 
 function updatePriceRecap() {
   const el = document.getElementById('price-recap');
+  const dur = DURATIONS.find(d => d.mins === selectedDuration);
   if (el) el.innerHTML = `
     <div>
       <div class="price-label">Total à régler sur place</div>
-      <div class="price-label" style="margin-top:0.25rem;color:var(--gold-pale);">${selectedDuration === 60 ? '1 heure' : '2 heures'} · jusqu'à 8 personnes</div>
+      <div class="price-label" style="margin-top:0.25rem;color:var(--gold-pale);">${dur ? dur.label : selectedDuration + ' min'} · jusqu'à 8 personnes</div>
     </div>
-    <div class="price-amount">${PRICES[selectedDuration]}<span> €</span></div>
+    <div class="price-amount">${PRICES[selectedDuration] || '—'}<span> €</span></div>
   `;
 }
 
@@ -1220,17 +1237,13 @@ function renderBookingForm(presetISO) {
 
     <div class="form-group">
       <label>Durée de la session</label>
-      <div class="duration-selector">
-        <label class="duration-option ${!isDur120 ? 'selected' : ''}" id="dur-60" onclick="selectDuration(60)">
-          <input type="radio" name="duration" value="60" ${!isDur120 ? 'checked' : ''}>
-          <span class="dur-label">1 h</span>
-          <span class="dur-sub">80 €</span>
-        </label>
-        <label class="duration-option ${isDur120 ? 'selected' : ''}" id="dur-120" onclick="selectDuration(120)">
-          <input type="radio" name="duration" value="120" ${isDur120 ? 'checked' : ''}>
-          <span class="dur-label">2 h</span>
-          <span class="dur-sub">140 €</span>
-        </label>
+      <div class="duration-grid" id="duration-grid">
+        ${DURATIONS.map(d => `
+          <button type="button" class="dur-btn ${selectedDuration === d.mins ? 'selected' : ''}" onclick="selectDuration(${d.mins})">
+            <span class="dur-btn-label">${d.label}</span>
+            <span class="dur-btn-price">${PRICES[d.mins]} €</span>
+          </button>
+        `).join('')}
       </div>
     </div>
 
@@ -1253,8 +1266,9 @@ function renderBookingForm(presetISO) {
 
 function selectDuration(mins) {
   selectedDuration = mins;
-  document.getElementById('dur-60').classList.toggle('selected', mins === 60);
-  document.getElementById('dur-120').classList.toggle('selected', mins === 120);
+  document.querySelectorAll('.dur-btn').forEach(btn => {
+    btn.classList.toggle('selected', parseInt(btn.getAttribute('onclick').match(/\d+/)[0]) === mins);
+  });
   updatePriceRecap();
 }
 
@@ -1369,7 +1383,7 @@ function showSuccess(session, startDate, endDate, firstname, email, phone) {
         <p>Loge · <span>${selectedDevice.name || 'Loge ' + selectedDevice.id}</span></p>
         <p>Début · <span>${fmt(startDate)}</span></p>
         <p>Fin · <span>${fmt(endDate)}</span></p>
-        <p>Durée · <span>${selectedDuration === 60 ? '1 heure' : '2 heures'}</span></p>
+        <p>Durée · <span>${DURATIONS.find(d => d.mins === selectedDuration)?.label || selectedDuration + ' min'}</span></p>
         <p>Montant à régler sur place · <span>${price} €</span></p>
         <p>Email · <span>${email}</span></p>
         <p>Téléphone · <span>${phone}</span></p>
