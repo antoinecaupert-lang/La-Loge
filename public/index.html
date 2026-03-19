@@ -828,6 +828,13 @@
     font-size: 0.62rem;
     letter-spacing: 0.12em;
     color: var(--gold-pale);
+    cursor: pointer;
+    pointer-events: all;
+    position: relative;
+    z-index: 2;
+  }
+  .slot-item:hover {
+    border-color: rgba(201,168,76,0.5);
   }
   .slot-item .slot-time { color: var(--cream); }
   .slot-item .slot-dur { color: var(--gold); opacity: 0.7; }
@@ -1202,6 +1209,11 @@ function renderBookingForm(presetISO) {
     </div>
 
     <div class="form-group">
+      <label>Téléphone</label>
+      <input type="tel" id="phone" placeholder="06 00 00 00 00" />
+    </div>
+
+    <div class="form-group">
       <label>Nombre de personnes</label>
       <select id="persons">
         ${[1,2,3,4,5,6,7,8].map(n => `<option value="${n}">${n} personne${n>1?'s':''}</option>`).join('')}
@@ -1280,6 +1292,8 @@ async function submitBooking() {
 
   if (!firstname) { showError('Veuillez saisir votre prénom.'); return; }
   if (!email || !email.includes('@')) { showError('Veuillez saisir une adresse e-mail valide.'); return; }
+  const phone = document.getElementById('phone').value.trim();
+  if (!phone) { showError('Veuillez saisir un numéro de téléphone.'); return; }
   if (!startVal) { showError('Veuillez choisir une date et heure de début.'); return; }
 
   const startDate = new Date(startVal);
@@ -1287,7 +1301,7 @@ async function submitBooking() {
 
   const endDate = new Date(startDate.getTime() + selectedDuration * 60 * 1000);
   const price = PRICES[selectedDuration];
-  const commentFull = [comment, `Email: ${email}`, `Personnes: ${persons}`, `Montant: ${price}€`].filter(Boolean).join(' | ');
+  const commentFull = [comment, `Email: ${email}`, `Tel: ${phone}`, `Personnes: ${persons}`, `Montant: ${price}€`].filter(Boolean).join(' | ');
 
   const payload = {
     device_id: selectedDevice.id,
@@ -1315,7 +1329,7 @@ async function submitBooking() {
     }
 
     const session = await res.json();
-    showSuccess(session, startDate, endDate, firstname, email, persons);
+    showSuccess(session, startDate, endDate, firstname, email, phone, persons);
   } catch(e) {
     showError(`La réservation a échoué : ${e.message}`);
     btn.textContent = 'Confirmer la réservation';
@@ -1329,7 +1343,7 @@ function showError(msg) {
   el.classList.add('visible');
 }
 
-function showSuccess(session, startDate, endDate, firstname, email, persons) {
+function showSuccess(session, startDate, endDate, firstname, email, phone, persons) {
   const fmt = date => date.toLocaleString('fr-FR', {
     weekday: 'long', day: 'numeric', month: 'long',
     hour: '2-digit', minute: '2-digit'
@@ -1348,7 +1362,8 @@ function showSuccess(session, startDate, endDate, firstname, email, persons) {
         <p>Durée · <span>${selectedDuration === 60 ? '1 heure' : '2 heures'}</span></p>
         <p>Personnes · <span>${persons}</span></p>
         <p>Montant à régler sur place · <span>${price} €</span></p>
-        <p>Confirmation envoyée à · <span>${email}</span></p>
+        <p>Email · <span>${email}</span></p>
+        <p>Téléphone · <span>${phone}</span></p>
         ${session.id ? `<p>Réf. · <span>#${session.id}</span></p>` : ''}
       </div>
       <button class="btn-primary" style="margin-top:1rem;" onclick="closeModal()">Fermer</button>
