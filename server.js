@@ -4,7 +4,7 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const KARAFUN_TOKEN = 'ebf828cee0c247d741862dc0618f3c3a2febe32b4e4822d6fdd7340edbe1';
+const KARAFUN_TOKEN = '9f95cd13c175ed93c9d135f0098ae8076a7c7d53ed5e8afd929f6568d0e2';
 const API_HOST = 'api.business.karafun.com';
 
 // Twilio
