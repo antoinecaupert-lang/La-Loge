@@ -1138,8 +1138,8 @@ function renderDevices() {
   container.innerHTML = '';
   container.appendChild(grid);
 
-  // Event delegation pour les boutons de réservation
-  grid.addEventListener('click', e => {
+  // Event delegation sur le container parent
+  container.addEventListener('click', e => {
     const btn = e.target.closest('.box-book-btn');
     if (btn) {
       const deviceId = parseInt(btn.getAttribute('data-device-id'));
