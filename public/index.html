@@ -1127,7 +1127,7 @@ function renderDevices() {
       </div>
       <p class="slots-title">Prochains créneaux</p>
       <div class="slots-list"></div>
-      <button class="box-book-btn" style="margin-top:1.25rem;" onclick="openBooking(${device.id})">
+      <button class="box-book-btn" style="margin-top:1.25rem;" data-device-id="${device.id}">
         Réserver cette loge
       </button>
     `;
@@ -1137,6 +1137,15 @@ function renderDevices() {
 
   container.innerHTML = '';
   container.appendChild(grid);
+
+  // Event delegation pour les boutons de réservation
+  grid.addEventListener('click', e => {
+    const btn = e.target.closest('.box-book-btn');
+    if (btn) {
+      const deviceId = parseInt(btn.getAttribute('data-device-id'));
+      openBooking(deviceId);
+    }
+  });
 }
 
 // ---- MODAL ----
