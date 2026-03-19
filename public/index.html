@@ -965,6 +965,7 @@
 </div>
 
 <script>
+// v9
 const API_BASE = '';
 let apiToken = localStorage.getItem('karafun_token') || 'ebf828cee0c247d741862dc0618f3c3a2febe32b4e4822d6fdd7340edbe1';
 let devices = [];
@@ -1127,10 +1128,14 @@ function renderDevices() {
       </div>
       <p class="slots-title">Prochains créneaux</p>
       <div class="slots-list"></div>
-      <button class="box-book-btn" style="margin-top:1.25rem;" data-device-id="${device.id}">
-        Réserver cette loge
-      </button>
     `;
+    // Bouton créé en JS pour éviter les problèmes de onclick inline
+    const btn = document.createElement('button');
+    btn.className = 'box-book-btn';
+    btn.style.marginTop = '1.25rem';
+    btn.textContent = 'Réserver cette loge';
+    btn.addEventListener('click', () => openBooking(device.id));
+    card.appendChild(btn);
     grid.appendChild(card);
     loadSlotsForCard(device, card);
   });
