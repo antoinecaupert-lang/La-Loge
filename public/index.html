@@ -940,21 +940,15 @@ function renderDevices() {
   devices.forEach(device => {
     const card = document.createElement('div');
     card.className = 'box-card';
-    const isActive = device.active;
-
     card.innerHTML = `
       <span class="box-number">Loge N° ${device.number || device.id}</span>
       <div class="box-name">${device.name || 'Loge ' + device.id}</div>
-      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.5rem;">
-        ${device.parental_control ? `<span style="font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:0.15em;color:var(--gold-pale);border:1px solid rgba(245,230,184,0.2);padding:0.2rem 0.5rem;">Contrôle parental</span>` : ''}
-        ${device.show_quiz ? `<span style="font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:0.15em;color:var(--gold-pale);border:1px solid rgba(245,230,184,0.2);padding:0.2rem 0.5rem;">Quiz activé</span>` : ''}
-      </div>
-      <div class="box-status ${isActive ? 'available' : 'unavailable'}">
+      <div class="box-status available">
         <span class="box-status-dot"></span>
-        ${isActive ? 'Disponible' : 'Indisponible'}
+        Disponible
       </div>
-      <button class="box-book-btn" ${!isActive ? 'disabled' : ''} onclick="openBooking(${device.id})">
-        ${isActive ? 'Réserver cette loge' : 'Non disponible'}
+      <button class="box-book-btn" onclick="openBooking(${device.id})">
+        Réserver cette loge
       </button>
     `;
     grid.appendChild(card);
