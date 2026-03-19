@@ -373,8 +373,7 @@
     padding: 2rem;
     position: relative;
     transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-    cursor: pointer;
-    overflow: hidden;
+    overflow: visible;
   }
   .box-card::before {
     content: '';
@@ -422,6 +421,8 @@
     display: block;
     width: 100%;
     margin-top: 1.5rem;
+    position: relative;
+    z-index: 10;
     font-family: 'Cinzel', serif;
     font-size: 0.65rem;
     letter-spacing: 0.2em;
@@ -815,6 +816,8 @@
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
+    position: relative;
+    z-index: 1;
   }
   .slot-item {
     display: flex;
